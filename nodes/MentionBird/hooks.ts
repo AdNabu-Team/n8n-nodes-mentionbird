@@ -9,7 +9,7 @@ import {
 	type JsonObject,
 } from 'n8n-workflow';
 
-import { type ApiErrorBody, isListEnvelope, type ListEnvelope } from './transport';
+import { apiError, isListEnvelope, type ListEnvelope } from './transport';
 
 // A rate-limited page is retried only when the API asks for a short wait.
 const MAX_RETRY_WAIT_SECONDS = 60;
@@ -20,10 +20,8 @@ const MAX_PAGE_RETRIES = 3;
 const wantsWholeResponse = (context: IExecuteSingleFunctions): boolean =>
 	context.getNodeParameter('options.output', 'rows') === 'response';
 
-// Requests are sent with ignoreHttpStatusErrors, so that the API's own message
-// ({"error": {"code", "message"}}) becomes the message n8n shows. A 429 keeps
-// n8n's "too many requests" message, with the API's message as the description,
-// and carries the API's Retry-After for paging to wait on.
+// Requests are sent with ignoreHttpStatusErrors, so that apiError decides the
+// error n8n shows.
 export async function throwOnApiError(
 	this: IExecuteSingleFunctions,
 	items: INodeExecutionData[],
@@ -32,18 +30,7 @@ export async function throwOnApiError(
 	if (response.statusCode < 400) {
 		return items;
 	}
-	const apiMessage = (response.body as ApiErrorBody)?.error?.message;
-	const httpCode = String(response.statusCode);
-	const error = new NodeApiError(this.getNode(), response.body as JsonObject, {
-		httpCode,
-		itemIndex: this.getItemIndex(),
-		...(httpCode === '429' ? { description: apiMessage } : { message: apiMessage }),
-	});
-	const retryAfter = Number(response.headers['retry-after']);
-	if (httpCode === '429' && retryAfter > 0) {
-		error.context.retryAfterSeconds = retryAfter;
-	}
-	throw error;
+	throw apiError(this.getNode(), response, this.getItemIndex());
 }
 
 // One n8n item per row of a list response, unless the whole response was asked
