@@ -93,6 +93,9 @@ in `README.md`.
   request when the output changes.
 - Commit the regenerated file with the change that caused it; CI fails when
   it doesn't match the pinned spec.
+- The MentionBird Trigger (`MentionBirdTrigger.node.ts`, `triggerEvents.ts`)
+  is written by hand: n8n triggers must be programmatic, so the generator
+  doesn't produce it.
 
 ## Context-specific docs
 Load these before working on the relevant area:

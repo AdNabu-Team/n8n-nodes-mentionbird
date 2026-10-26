@@ -1,6 +1,6 @@
 # n8n-nodes-mentionbird
 
-This is an n8n community node for [MentionBird](https://mentionbird.ai). It lets you use your MentionBird data in n8n workflows and give it to an AI Agent as a tool.
+This is an n8n community node for [MentionBird](https://mentionbird.ai). It lets you use your MentionBird data in n8n workflows, start workflows when it changes, and give it to an AI Agent as a tool.
 
 MentionBird tracks how a brand shows up in AI answers on ChatGPT, Claude, Gemini, Perplexity and Grok: how often the brand is mentioned, which competitors are named instead, which pages and domains the AI platforms cite, and what to change to rank better.
 
@@ -9,6 +9,7 @@ MentionBird tracks how a brand shows up in AI answers on ChatGPT, Claude, Gemini
 - [Installation](#installation)
 - [Credentials](#credentials)
 - [Operations](#operations)
+- [Trigger](#trigger)
 - [Usage](#usage)
 - [Example workflows](#example-workflows)
 - [Compatibility](#compatibility)
@@ -64,6 +65,17 @@ Each operation calls one endpoint of MentionBird's REST API. The **Add** operati
 
 <!-- operations:end -->
 
+## Trigger
+
+The **MentionBird Trigger** node starts a workflow when one of these happens for a brand:
+
+- **Visibility Changed:** the brand's visibility on the last complete day moved by at least **Minimum Change** percentage points. It's compared with the previous day that had AI answers, or with the average of the previous 7 days, which is steadier for a brand with few prompts. **Direction** narrows it to drops or rises, and **Options** to one AI platform or prompt tag. Days are UTC days, and a day counts as complete from 04:00 UTC the next day, an hour after MentionBird's nightly aggregation. A day without any AI answers is skipped, not read as a drop to zero. Days missed while n8n or MentionBird was down are compared once both are back, up to 7 days.
+- **New Ranking Advice:** a ranking-advice run finished for one of the brand's prompts. Each run starts the workflow once.
+
+Activating the workflow records where things stand, so the trigger starts workflows only for what happens afterwards, including after it was switched off for a while. Activation checks the settings with MentionBird, so a wrong brand or prompt tag fails it with MentionBird's message. Restarting n8n keeps the trigger's place, so nothing that happens meanwhile is missed or repeated. **Fetch Test Event** returns the latest comparison, or the newest-started ranking-advice run, whatever the minimum change.
+
+**How often it calls MentionBird.** n8n checks a polling trigger every minute by default. Visibility changes once a day, and a quarter-hour's delay on new ranking advice costs little, so the trigger calls the API at most once every 15 minutes, whatever **Poll Times** says. A failed check waits as long, or longer if MentionBird's rate limit asks it to. Visibility Changed makes about one request a day, once the new day is complete. New Ranking Advice makes one request per check, plus one for each further 50 runs that finished since the previous check, up to three more. That's 96 requests a day in the usual case and 384 at most, within MentionBird's per-key limit of 10,000 a day.
+
 ## Usage
 
 **Choosing a brand.** Most operations ask for a **Brand**. Pick it **From List**, which shows the brands your workspace tracks, or switch to **By Name** and type or map the name exactly as MentionBird shows it.
@@ -81,6 +93,16 @@ An empty list outputs no items, so the nodes after it don't run. To get the tota
 **AI Agents.** The node can be attached to an AI Agent as a tool. Add one MentionBird tool per question the agent should be able to answer, for example Brand → Get Many and Visibility → Get, and let the model fill in parameters such as **Brand** by choosing **Let the model define this parameter**.
 
 ## Example workflows
+
+**A Slack alert when visibility drops**
+
+1. **MentionBird Trigger**, Visibility Changed, with your brand, **Minimum Change** 5, **Direction** Down and **Compare With** Previous 7 Days' Average.
+2. **Slack**, Send Message, with text such as `{{ $json.brand }}'s visibility fell {{ Math.abs($json.change_pts) }} points to {{ $json.visibility_pct }}% on {{ $json.date }}.`
+
+**New ranking advice into Notion**
+
+1. **MentionBird Trigger**, New Ranking Advice, with your brand.
+2. **Notion**, Create Database Page, with the prompt from `{{ $json.prompt_text }}` and the advice from `{{ $json.summary }}`.
 
 **Weekly AI visibility report in Slack**
 
@@ -193,4 +215,4 @@ npx @n8n/scan-community-package n8n-nodes-mentionbird
 
 ### 0.1.0
 
-First release: every operation of MentionBird's `/api/v1` REST API, a brand picker, paging, and use as an AI Agent tool.
+First release: every operation of MentionBird's `/api/v1` REST API, a brand picker, paging, use as an AI Agent tool, and a trigger for visibility changes and new ranking advice.
