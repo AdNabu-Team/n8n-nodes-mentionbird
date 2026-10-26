@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-mentionbird.mentionBird",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Analytics", "Marketing & Content"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.mentionbird.ai/authentication/"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.mentionbird.ai/"
+			}
+		]
+	}
+}

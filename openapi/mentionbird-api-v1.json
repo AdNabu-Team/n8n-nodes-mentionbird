@@ -1,0 +1,1929 @@
+{
+	"openapi": "3.0.3",
+	"info": {
+		"title": "MentionBird.ai Visibility & LLM Tracker API",
+		"description": "Track how a brand shows up in AI assistant answers. Read visibility metrics, share of voice, the domains AI platforms cite, per-prompt gaps, ranking advice and YouTube summaries — and add brands or prompts to track.",
+		"version": "1.0.0",
+		"contact": {
+			"name": "MentionBird.ai Support",
+			"url": "https://mentionbird.ai"
+		}
+	},
+	"security": [
+		{
+			"BearerAuth": []
+		}
+	],
+	"components": {
+		"securitySchemes": {
+			"BearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "API Key (lmvz_live_...)",
+				"description": "Bearer token authentication using your MentionBird.ai Account API key (starts with 'lmvz_live_')."
+			}
+		}
+	},
+	"paths": {
+		"/brands/tracked": {
+			"get": {
+				"summary": "List Tracked Brands",
+				"operationId": "listTrackedBrands",
+				"description": "List every brand this workspace tracks. Call this first — other endpoints take the brand name exactly as returned here.",
+				"responses": {
+					"200": {
+						"description": "List of tracked brands."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"tags": [
+					"Discovery"
+				]
+			},
+			"post": {
+				"summary": "Add Tracked Brand",
+				"operationId": "addTrackedBrand",
+				"description": "Start tracking a new brand. Requires a write-enabled API key.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"brand"
+								],
+								"properties": {
+									"brand": {
+										"type": "string",
+										"description": "Name of the brand to track."
+									},
+									"domain": {
+										"type": "string",
+										"description": "Primary domain, e.g. example.com. Registered as a brand-owned domain for this workspace only."
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Brand is now tracked."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"tags": [
+					"Writes"
+				]
+			}
+		},
+		"/queries": {
+			"get": {
+				"summary": "List Tracked Prompts",
+				"operationId": "listQueries",
+				"description": "List the prompts tracked for a brand, with their search-volume and difficulty buckets and the prompt ID token other endpoints need.",
+				"responses": {
+					"200": {
+						"description": "Tracked prompts."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug — see listQueryTags."
+					}
+				],
+				"tags": [
+					"Discovery"
+				]
+			}
+		},
+		"/queries/tags": {
+			"get": {
+				"summary": "List Prompt Tags",
+				"operationId": "listQueryTags",
+				"description": "List the tags this workspace has assigned to a brand's prompts. Pass a tag's slug as `query_tag` on other endpoints.",
+				"responses": {
+					"200": {
+						"description": "Prompt tags."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					}
+				],
+				"tags": [
+					"Discovery"
+				]
+			}
+		},
+		"/llm-providers": {
+			"get": {
+				"summary": "List AI Platforms",
+				"operationId": "listLLMProviders",
+				"description": "List the AI platforms available to this workspace (ChatGPT, Claude, Gemini, Perplexity, Grok) and the models behind them.",
+				"responses": {
+					"200": {
+						"description": "Available AI platforms."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"tags": [
+					"Discovery"
+				]
+			}
+		},
+		"/visibility": {
+			"get": {
+				"summary": "Get Brand Visibility",
+				"operationId": "getVisibility",
+				"description": "How often the brand appears in AI answers, plus prominence score, average rank and sentiment. Group overall, by day, by platform or by tag.",
+				"responses": {
+					"200": {
+						"description": "Visibility metrics. net_sentiment is -100..+100: how the AI platforms talk about the brand, not how often they name it. +100 = every labeled mention recommends it, -100 = every one criticizes it, 0 = balanced or uniformly neutral. It is computed over labeled mentions ONLY. sentiment_coverage_pct is what share of mentions carry a label; anything crawled before sentiment tracking began is unlabeled and counts toward neither side. Read the two together - net_sentiment 0 with coverage 0 means no data, not neutral, and must never be reported as neutral."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "group_by",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "overall",
+							"enum": [
+								"overall",
+								"day",
+								"provider",
+								"query_tag"
+							]
+						},
+						"description": "Grouping granularity."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					}
+				],
+				"tags": [
+					"Visibility"
+				]
+			}
+		},
+		"/brands/top-mentioned": {
+			"get": {
+				"summary": "Get Share of Voice",
+				"operationId": "getTopMentionedBrands",
+				"description": "The brands named most often across this brand's tracked prompts — who you are losing to, and by how much.",
+				"responses": {
+					"200": {
+						"description": "Brands ranked by mentions, each with its own sentiment so the brand can be compared with its competitors on tone as well as share of voice. net_sentiment is -100..+100: how the AI platforms talk about the brand, not how often they name it. +100 = every labeled mention recommends it, -100 = every one criticizes it, 0 = balanced or uniformly neutral. It is computed over labeled mentions ONLY. sentiment_coverage_pct is what share of mentions carry a label; anything crawled before sentiment tracking began is unlabeled and counts toward neither side. Read the two together - net_sentiment 0 with coverage 0 means no data, not neutral, and must never be reported as neutral."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "filter_by_brand",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Only answers that also mention this brand."
+					},
+					{
+						"name": "exclude_brand",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Only answers that do not mention this brand."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						},
+						"description": "Max rows (default 20, max 100)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Visibility"
+				]
+			}
+		},
+		"/citations/domains": {
+			"get": {
+				"summary": "Get Top Cited Domains",
+				"operationId": "getTopCitationDomains",
+				"description": "The domains AI platforms cite most when answering this brand's prompts.",
+				"responses": {
+					"200": {
+						"description": "Cited domains ranked by citation count - never by authority, and there is no authority sort or filter, so walk pages with offset before judging the best target. Each row's domain_authority is a 0-100 site-authority score. 0 is a real measured score meaning genuinely low authority; null is unknown - not yet looked up, or the lookup failed - so leave that row out of authority comparisons."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "filter_by_brand",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Only answers that also mention this brand."
+					},
+					{
+						"name": "exclude_brand",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Only answers that do not mention this brand."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "domain",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one domain."
+					},
+					{
+						"name": "source_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Site category — see listCitationTags."
+					},
+					{
+						"name": "content_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Page category — see listCitationTags."
+					},
+					{
+						"name": "url_status",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"unknown",
+								"alive",
+								"dead",
+								"redirect"
+							]
+						},
+						"description": "Link health filter."
+					},
+					{
+						"name": "ownership",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter by who owns the domain: 'yours', 'earned', 'competitor', or 'competitor:<name>'."
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Substring match on domain, URL or page title."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						},
+						"description": "Max rows (default 20, max 100)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Citations"
+				]
+			}
+		},
+		"/citations": {
+			"get": {
+				"summary": "List Citations",
+				"operationId": "listCitations",
+				"description": "Individual cited URLs with page metadata, for detailed source analysis.",
+				"responses": {
+					"200": {
+						"description": "Citations with page metadata. Each row's domain_authority is a 0-100 site-authority score for the row's domain, not the page. 0 is a real measured score meaning genuinely low authority; null is unknown - not yet looked up, or the lookup failed - so leave that row out of authority comparisons."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "domain",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one domain."
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Substring match on domain, URL or page title."
+					},
+					{
+						"name": "source_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Site category — see listCitationTags."
+					},
+					{
+						"name": "content_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Page category — see listCitationTags."
+					},
+					{
+						"name": "url_status",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"unknown",
+								"alive",
+								"dead",
+								"redirect"
+							]
+						},
+						"description": "Link health filter."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "include_extras",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": false
+						},
+						"description": "Include per-domain extracted metadata."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						},
+						"description": "Max rows (default 20, max 100)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Citations"
+				]
+			}
+		},
+		"/citations/tags": {
+			"get": {
+				"summary": "List Citation Taxonomy",
+				"operationId": "listCitationTags",
+				"description": "The valid source_type and content_type values to pass to the citation endpoints. source_type describes the kind of site, content_type the kind of page.",
+				"responses": {
+					"200": {
+						"description": "Citation taxonomy."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"tags": [
+					"Citations"
+				]
+			}
+		},
+		"/sources/owned-share": {
+			"get": {
+				"summary": "Get Owned vs Earned Share",
+				"operationId": "getOwnedSourceShare",
+				"description": "How citations split between domains the brand owns, competitor-owned domains and earned third-party coverage.",
+				"responses": {
+					"200": {
+						"description": "Ownership breakdown."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					}
+				],
+				"tags": [
+					"Citations"
+				]
+			}
+		},
+		"/searches": {
+			"get": {
+				"summary": "Get Top Web Searches",
+				"operationId": "getTopWebSearches",
+				"description": "The searches AI models ran before answering this brand's prompts - the terms to rank for, as opposed to the pages already cited.",
+				"responses": {
+					"200": {
+						"description": "Searches ranked by how often they were run. Read the coverage block before quoting any rate: a provider with exposes_searches false does not publish its searches, so its answers are absent rather than zero. no_search_rate_pct is the share of readable answers where the model searched nothing and replied from prior knowledge - it is computed over runs_with_readable_searches, never over runs, and is null when nothing was readable. Search rankings cannot reach the prompts in that share. In topic mode rows come back pre-order - a topic, then its sub-topics - with depth, topic_id and parent_topic_id for rebuilding the nesting. In topic mode the search field is a synthesized label naming what the topic is about, not a quotation: it will not appear verbatim under group_by=search, and must not be fed back as the q filter or re-run as a search string. occurrences on a topic INCLUDES its sub-topics, so those numbers do not sum to total_occurrences; direct_occurrences is the row's own share and those do sum exactly. The last row is Other searches, the terminal bucket for searches too rare to have been mined into a topic and the one label that names no subject; unmatched_terms / unmatched_pct_of_searches report its size, which is a large share of volume - the visible rows are not the whole picture. topics_ready false means the brand's tree has not been mined yet and rows are one topic per search term. total_occurrences and total_unique_searches are identical in both modes and neither is the pagination total - walk on total_count, which counts topic rows here and search strings under group_by=search. Every one of these counts is zero for a provider with exposes_searches false because there is nothing to count, which is not the same as the model having searched nothing. language names the tree these rows came from and available_languages every tree the brand has; for a multi-language brand these rows are one language's slice, not the brand's whole volume. Each row carries searches_by_provider, a provider code to count map summing to occurrences, and the response carries searches_by_provider_total, the same map over every row in scope. Do NOT read a row's raw percentages as a model preference: they conflate how many runs were bought on each model with how much each model searches per run, which on real data turned a 1.7x preference into an apparent 15x one. Divide by searches_by_provider_total to get the topic's share of that provider's own searching, which cancels both. A provider that publishes nothing is absent from both maps rather than present at zero, so a missing key means unknown, not zero searches. searches_by_provider_total is row-level and so is narrowed by search, unlike coverage.by_provider[*].searches which reads the pre-filter run set; with no filters applied the two agree. Every row carries first_seen_in_range, the earliest run WITHIN the requested window rather than the first time the term was ever searched - on a 30-day read every value is bounded below by start_date, so a term the brand has triggered for a year reads as new; widen the window to push the bound back, there is no never-seen-before flag. Under group_by=search each row also carries triggered_by: the prompt that produced that search most often, as brand_prompt_id (the same opaque token listQueries returns, passable straight back as the brand_prompt_id filter), prompt and other_prompts. It names one prompt rather than listing them because 94.6% of terms come from exactly one, and is null only when that prompt has since been removed. Topic rows carry prompt_count instead, for the same reason depth and topic_id appear only on topics: a topic spans several prompts, so naming one would be a lie of omission."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Substring match on the search text. Narrows the rows and total_occurrences; everything under coverage is run-level and stays put. Applied before grouping, so under a filter a topic's counts describe only its matching phrasings, and its label may re-spell or re-order to match them. Topic identity is mined nightly and does not move with the filter; the label's word set follows that identity, only its wording follows the filter."
+					},
+					{
+						"name": "group_by",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "topic",
+							"enum": [
+								"topic",
+								"search"
+							]
+						},
+						"description": "topic (default) returns the nightly-mined topic hierarchy flattened pre-order, each row carrying depth, topic_id and parent_topic_id; search returns one flat row per exact search string. Anything else is a 400, not a silent fallback - this selects which rows you get. Must match search_queries.VALID_GROUP_BY exactly. The older spelling theme is still accepted for topic and is deliberately not listed here, so nothing new depends on it."
+					},
+					{
+						"name": "language",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO 639-1 code selecting WHICH of the brand's topic trees to read. A brand running prompts in several languages has one tree per language, mined with that language's stemmer, so they cannot be merged and there is no all-languages view: this narrows the rows as well as the grouping. Omit for the brand's largest language. Not an enum and not a 400 - which languages exist is per-brand, so an unknown code falls back to that default and the response's language field says which was used. available_languages lists every one with its own search count; those counts sum to the brand's whole volume, so nothing is hidden by there being no combined view. An empty string means the searches are not stemmed - what an untagged or unsupported language gets; pass und to select that bucket, since its code is the empty string and an empty query parameter reads as an absent one. An unrecognised code names nothing and falls back to the default rather than landing on the unstemmed bucket. Most brands have one language and an empty available_languages."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						},
+						"description": "Max rows (default 20, max 100)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Searches"
+				]
+			}
+		},
+		"/prompts/leaderboard": {
+			"get": {
+				"summary": "Get Prompt Leaderboard",
+				"operationId": "getPromptBrandLeaderboard",
+				"description": "For ONE prompt: headline metrics plus every brand named on it, ranked. Requires brand_prompt_id from listQueries.",
+				"responses": {
+					"200": {
+						"description": "Per-prompt brand leaderboard."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Prompt ID token from listQueries."
+					},
+					{
+						"name": "window_days",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						},
+						"description": "Trailing window in days (default 30, max 365)."
+					}
+				],
+				"tags": [
+					"Prompts"
+				]
+			}
+		},
+		"/prompts/by-visibility": {
+			"get": {
+				"summary": "List Prompts by Visibility",
+				"operationId": "listPromptsByVisibility",
+				"description": "Prompts ordered by visibility: ascending finds the gaps where the brand loses, descending finds the wins.",
+				"responses": {
+					"200": {
+						"description": "Prompts ordered by visibility, each with its own net_sentiment so you can find the prompts the AIs talk about the brand badly in, not just the ones they omit it from. net_sentiment is -100..+100: how the AI platforms talk about the brand, not how often they name it. +100 = every labeled mention recommends it, -100 = every one criticizes it, 0 = balanced or uniformly neutral. It is computed over labeled mentions ONLY. sentiment_coverage_pct is what share of mentions carry a label; anything crawled before sentiment tracking began is unlabeled and counts toward neither side. Read the two together - net_sentiment 0 with coverage 0 means no data, not neutral, and must never be reported as neutral."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "order",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "asc",
+							"enum": [
+								"asc",
+								"desc"
+							]
+						},
+						"description": "Sort direction."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "country",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO alpha-2 country code; 'ZZ' means Global."
+					},
+					{
+						"name": "min_search_volume",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						},
+						"description": "Minimum volume bucket (1-10)."
+					},
+					{
+						"name": "max_difficulty",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						},
+						"description": "Maximum difficulty bucket (1-10)."
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Substring match on the prompt text."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 50
+						},
+						"description": "Max rows (default 50, max 100)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Prompts"
+				]
+			}
+		},
+		"/prompts/ranking-advice": {
+			"get": {
+				"summary": "Get Ranking Advice for a Prompt",
+				"operationId": "getRankingAdvice",
+				"description": "Completed ranking-advice runs for ONE prompt — what to change to rank better. Read-only: this never starts a new run. Requires brand_prompt_id from listQueries.",
+				"responses": {
+					"200": {
+						"description": "Ranking advice runs for the prompt."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Prompt ID token from listQueries."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer"
+						},
+						"description": "Max runs to return."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Prompts"
+				]
+			}
+		},
+		"/ranking-advice": {
+			"get": {
+				"summary": "List Ranking Advice Runs",
+				"operationId": "listRankingAdvice",
+				"description": "Ranking-advice runs across ALL of a brand's prompts. Use this to find which prompts already have advice before calling getRankingAdvice.",
+				"responses": {
+					"200": {
+						"description": "Ranking advice runs for the brand."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						},
+						"description": "Max rows (default 20)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					},
+					{
+						"name": "status",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"done",
+								"running",
+								"pending",
+								"error"
+							]
+						},
+						"description": "Lifecycle filter. Most callers want 'done'."
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Substring match on the prompt text. Not the generated summary."
+					}
+				],
+				"tags": [
+					"Prompts"
+				]
+			}
+		},
+		"/query-runs": {
+			"get": {
+				"summary": "List Sample AI Answers",
+				"operationId": "listQueryRuns",
+				"description": "Recent AI answers for the brand's prompts, each with a short preview of the answer. To read one answer in full, take its run_id from this list and call getQueryRun.",
+				"responses": {
+					"200": {
+						"description": "Sample AI answers, each with a ~300 character preview and a run_id. web_search_query_count is how many web searches the AI ran before answering: 0 means it answered without searching; null means the number is not recorded - Perplexity never exposes its searches, and runs from before we started recording them have no count. The search terms themselves are on getQueryRun. mention_sentiment is how that answer framed the brand - positive, neutral or negative. It is null when the answer never named the brand, and 'unknown' when it did but the run predates sentiment tracking; those are different facts, so do not read either as neutral."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "mentioned",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						},
+						"description": "true = only answers naming the brand; false = only answers that omit it; omit for both."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 5
+						},
+						"description": "Max rows (default 5, max 100)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Answers"
+				]
+			}
+		},
+		"/query-runs/{run_id}": {
+			"get": {
+				"summary": "Get One AI Answer in Full",
+				"operationId": "getQueryRun",
+				"description": "One run in full: the complete answer text, every brand mentioned, every source cited and every web search the AI ran. Use this after listQueryRuns when the preview isn't enough.",
+				"parameters": [
+					{
+						"name": "run_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Opaque run_id from listQueryRuns."
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "The run, with full answer text. web_search_queries lists the searches the AI ran before answering, in order, as plain strings - the terms a brand has to rank for to be found for this prompt. An empty list with web_search_query_count 0 means the AI answered without searching; both null means the searches are not recorded - Perplexity never exposes them, and runs from before we started recording them have none. Each entry in mentions carries sentiment (positive, neutral, negative, or unknown when the run predates sentiment tracking) and sentiment_reason, the phrase in this answer that drove the label - null when there isn't one."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"tags": [
+					"Answers"
+				]
+			}
+		},
+		"/youtube/summaries": {
+			"get": {
+				"summary": "List YouTube Summaries",
+				"operationId": "listYouTubeSummaries",
+				"description": "Cited YouTube videos this brand has already paid to summarize.",
+				"responses": {
+					"200": {
+						"description": "YouTube summaries."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Substring match on video or channel title."
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 20
+						},
+						"description": "Max rows (default 20, max 100)."
+					},
+					{
+						"name": "offset",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"default": 0
+						},
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+					}
+				],
+				"tags": [
+					"Video"
+				]
+			}
+		},
+		"/youtube/summary": {
+			"get": {
+				"summary": "Get YouTube Summary",
+				"operationId": "getYouTubeSummary",
+				"description": "Summary, key points and optional transcript for one cited YouTube URL.",
+				"responses": {
+					"200": {
+						"description": "YouTube summary detail."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "url",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Full YouTube video URL."
+					},
+					{
+						"name": "include_transcript",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "boolean",
+							"default": false
+						},
+						"description": "Include the full transcript text."
+					}
+				],
+				"tags": [
+					"Video"
+				]
+			}
+		},
+		"/prompts": {
+			"post": {
+				"summary": "Add Prompts to Track",
+				"operationId": "addPrompts",
+				"description": "Add prompts to track for a brand across the chosen AI platforms and queue the first crawl. Requires a write-enabled API key.",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"brand",
+									"prompts",
+									"llms"
+								],
+								"properties": {
+									"brand": {
+										"type": "string",
+										"description": "Tracked brand name."
+									},
+									"prompts": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										},
+										"description": "The prompts to track (max 50)."
+									},
+									"llms": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										},
+										"description": "Platform slugs, e.g. ['openai', 'claude']. Must be allowed by the account's plan."
+									},
+									"country": {
+										"type": "string",
+										"default": "ZZ",
+										"description": "ISO alpha-2 code; 'ZZ' = Global."
+									},
+									"tags": {
+										"type": "array",
+										"items": {
+											"type": "string"
+										},
+										"description": "Tags to attach (max 10)."
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Prompts added and crawl queued."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"tags": [
+					"Writes"
+				]
+			}
+		}
+	},
+	"tags": [
+		{
+			"name": "Discovery",
+			"description": "Find the brands, prompts, tags and AI platforms this workspace tracks. Start here — most other endpoints take a brand name or prompt ID returned by these."
+		},
+		{
+			"name": "Visibility",
+			"description": "How often the brand appears in AI answers, and who it shares those answers with."
+		},
+		{
+			"name": "Citations",
+			"description": "The pages and domains AI platforms cite when they answer, and how much of that is your own."
+		},
+		{
+			"name": "Searches",
+			"description": "The web searches the AI platforms actually ran while answering a prompt."
+		},
+		{
+			"name": "Prompts",
+			"description": "Per-prompt standings and the advice agent's guidance on improving them."
+		},
+		{
+			"name": "Answers",
+			"description": "The raw AI answers behind every metric, in full."
+		},
+		{
+			"name": "Video",
+			"description": "Summaries of cited YouTube videos the brand has paid to analyze."
+		},
+		{
+			"name": "Writes",
+			"description": "Add brands and prompts to track. These need a write-enabled API key."
+		}
+	]
+}

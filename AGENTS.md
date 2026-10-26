@@ -81,6 +81,17 @@ project _may_ contain example nodes and/or credentials that need to be
   CHANGELOG.md** in the root of the repository
 - Read `.agents/workflow.md` for more info
 
+## Generated code
+The MentionBird node's resources, operations and parameters are generated
+from the pinned OpenAPI spec in `openapi/` by `scripts/generate.mjs`, which
+writes `nodes/MentionBird/generated/properties.ts` and the operations table
+in `README.md`.
+- **Never edit the generated file by hand.** Change the layout in
+  `scripts/layout.mjs` or the generator, then run `npm run generate`.
+- `npm run spec:update` pins a newer spec and regenerates.
+- Commit the regenerated file with the change that caused it; CI fails when
+  it doesn't match the pinned spec.
+
 ## Context-specific docs
 Load these before working on the relevant area:
 

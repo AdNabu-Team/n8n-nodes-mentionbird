@@ -1,46 +1,179 @@
 # n8n-nodes-mentionbird
 
-This is an n8n community node. It lets you use _app/service name_ in your n8n workflows.
+This is an n8n community node for [MentionBird](https://mentionbird.ai). It lets you use your MentionBird data in n8n workflows and give it to an AI Agent as a tool.
 
-_App/service name_ is _one or two sentences describing the service this node integrates with_.
+MentionBird tracks how a brand shows up in AI answers on ChatGPT, Claude, Gemini, Perplexity and Grok: how often the brand is mentioned, which competitors are named instead, which pages and domains the AI platforms cite, and what to change to rank better.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
 
-[Installation](#installation)
-[Operations](#operations)
-[Credentials](#credentials)
-[Compatibility](#compatibility)
-[Usage](#usage)
-[Resources](#resources)
-[Version history](#version-history)
+- [Installation](#installation)
+- [Credentials](#credentials)
+- [Operations](#operations)
+- [Usage](#usage)
+- [Example workflows](#example-workflows)
+- [Compatibility](#compatibility)
+- [Resources](#resources)
+- [Development](#development)
+- [Version history](#version-history)
 
 ## Installation
 
-Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
-
-## Operations
-
-_List the operations supported by your node._
+Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation, and install `n8n-nodes-mentionbird`.
 
 ## Credentials
 
-_If users need to authenticate with the app/service, provide details here. You should include prerequisites (such as signing up with the service), available authentication methods, and how to set them up._
+The node signs in with a MentionBird API key, sent as a bearer token.
 
-## Compatibility
+1. In MentionBird, open **API & integrations** and create an API key on the **Manage access** tab. To use the **Add** operations, tick **Allow this key to make changes (write access)**. A read-only key can use every other operation.
+2. In n8n, create a **MentionBird API** credential and paste the key into **API Key**.
+3. Leave **Base URL** at `https://api.mentionbird.ai` unless MentionBird gave you another address.
 
-_State the minimum n8n version, as well as which versions you test against. You can also include any known version incompatibility issues._
+Saving the credential tests it by listing your tracked brands. MentionBird's [authentication docs](https://docs.mentionbird.ai/authentication/) have more on API keys.
+
+The node takes API keys only. Signing in with OAuth, as MCP clients do, isn't supported by the REST API it calls.
+
+## Operations
+
+Each operation calls one endpoint of MentionBird's REST API. The **Add** operations need a key with write access.
+
+<!-- operations:start -->
+
+| Resource    | Operation                 | What it does                                                                                                                                                                          | Endpoint                             |
+| ----------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| AI Platform | Get Many                  | List the AI platforms available to this workspace (ChatGPT, Claude, Gemini, Perplexity, Grok) and the models behind them.                                                             | `GET /api/v1/llm-providers`          |
+| Answer      | Get Many                  | Recent AI answers for the brand's prompts, each with a short preview of the answer. To read one answer in full, take its 'Answer ID' from this list and call Answer → Get.            | `GET /api/v1/query-runs`             |
+| Answer      | Get                       | One run in full: the complete answer text, every brand mentioned, every source cited and every web search the AI ran. Use this after Answer → Get Many when the preview isn't enough. | `GET /api/v1/query-runs/{run_id}`    |
+| Brand       | Get Many                  | List every brand this workspace tracks. Call this first — other endpoints take the brand name exactly as returned here.                                                               | `GET /api/v1/brands/tracked`         |
+| Brand       | Add                       | Start tracking a new brand. Requires a write-enabled API key.                                                                                                                         | `POST /api/v1/brands/tracked`        |
+| Citation    | Get Many                  | Individual cited URLs with page metadata, for detailed source analysis.                                                                                                               | `GET /api/v1/citations`              |
+| Citation    | Get Top Domains           | The domains AI platforms cite most when answering this brand's prompts.                                                                                                               | `GET /api/v1/citations/domains`      |
+| Citation    | Get Owned vs Earned Share | How citations split between domains the brand owns, competitor-owned domains and earned third-party coverage.                                                                         | `GET /api/v1/sources/owned-share`    |
+| Citation    | Get Taxonomy              | The valid 'Source Type' and 'Content Type' values to pass to the citation endpoints. 'Source Type' describes the kind of site, 'Content Type' the kind of page.                       | `GET /api/v1/citations/tags`         |
+| Prompt      | Get Many                  | List the prompts tracked for a brand, with their search-volume and difficulty buckets and the prompt ID token other endpoints need.                                                   | `GET /api/v1/queries`                |
+| Prompt      | Get Tags                  | List the tags this workspace has assigned to a brand's prompts. Pass a tag's slug as 'Prompt Tag' on other endpoints.                                                                 | `GET /api/v1/queries/tags`           |
+| Prompt      | Get Many by Visibility    | Prompts ordered by visibility: ascending finds the gaps where the brand loses, descending finds the wins.                                                                             | `GET /api/v1/prompts/by-visibility`  |
+| Prompt      | Get Leaderboard           | For ONE prompt: headline metrics plus every brand named on it, ranked. Requires 'Prompt ID' from Prompt → Get Many.                                                                   | `GET /api/v1/prompts/leaderboard`    |
+| Prompt      | Get Ranking Advice        | Completed ranking-advice runs for ONE prompt — what to change to rank better. Read-only: this never starts a new run. Requires 'Prompt ID' from Prompt → Get Many.                    | `GET /api/v1/prompts/ranking-advice` |
+| Prompt      | Get Ranking Advice Runs   | Ranking-advice runs across ALL of a brand's prompts. Use this to find which prompts already have advice before calling Prompt → Get Ranking Advice.                                   | `GET /api/v1/ranking-advice`         |
+| Prompt      | Add                       | Add prompts to track for a brand across the chosen AI platforms and queue the first crawl. Requires a write-enabled API key.                                                          | `POST /api/v1/prompts`               |
+| Visibility  | Get                       | How often the brand appears in AI answers, plus prominence score, average rank and sentiment. Group overall, by day, by platform or by tag.                                           | `GET /api/v1/visibility`             |
+| Visibility  | Get Share of Voice        | The brands named most often across this brand's tracked prompts — who you are losing to, and by how much.                                                                             | `GET /api/v1/brands/top-mentioned`   |
+| Web Search  | Get Many                  | The searches AI models ran before answering this brand's prompts - the terms to rank for, as opposed to the pages already cited.                                                      | `GET /api/v1/searches`               |
+| YouTube     | Get Many                  | Cited YouTube videos this brand has already paid to summarize.                                                                                                                        | `GET /api/v1/youtube/summaries`      |
+| YouTube     | Get                       | Summary, key points and optional transcript for one cited YouTube URL.                                                                                                                | `GET /api/v1/youtube/summary`        |
+
+<!-- operations:end -->
 
 ## Usage
 
-_This is an optional section. Use it to help users with any difficult or confusing aspects of the node._
+**Choosing a brand.** Most operations ask for a **Brand**. Pick it **From List**, which shows the brands your workspace tracks, or switch to **By Name** and type or map the name exactly as MentionBird shows it.
 
-_By the time users are looking for community nodes, they probably already know n8n basics. But if you expect new users, you can link to the [Try it out](https://docs.n8n.io/try-it-out/) documentation to help them get started._
+**Lists.** Operations that return a list output one n8n item per row. Turn on **Return All** to read every row, or set **Limit** to the number you want; the node reads as many pages as that takes. Operations that return a summary, such as Visibility → Get, output a single item.
+
+An empty list outputs no items, so the nodes after it don't run. To get the totals and summary fields that come with a list, such as the search coverage of Web Search → Get Many, or one item even when the list is empty, set **Options → Output** to **Whole Response**. The node then outputs one item, with the rows in `items`.
+
+**List fields.** Fields that take several values, such as **Prompts** and **Tags**, take one value per line, or an expression that returns an array.
+
+**Optional settings.** Date ranges, AI platform, prompt tag and other filters are under **Options** (or **Additional Fields** on the Add operations). Dates use the `YYYY-MM-DD` format; without them, MentionBird reads the last 30 days.
+
+**Errors.** When MentionBird rejects a request, the node shows MentionBird's own message, such as an untracked brand name or a read-only key. If you send requests faster than your key's rate limit allows, the node reports that the service is receiving too many requests; space them out with the node's **Retry On Fail** setting or by batching the items that feed it. While reading several pages, the node waits and retries a rate-limited page itself when MentionBird asks it to wait a minute or less, keeping the pages it already has.
+
+**AI Agents.** The node can be attached to an AI Agent as a tool. Add one MentionBird tool per question the agent should be able to answer, for example Brand → Get Many and Visibility → Get, and let the model fill in parameters such as **Brand** by choosing **Let the model define this parameter**.
+
+## Example workflows
+
+**Weekly AI visibility report in Slack**
+
+1. **Schedule Trigger**, every Monday morning.
+2. **MentionBird**, Visibility → Get, with your brand. Under **Options**, set **Group By** to **AI Platform** to get one item per platform.
+3. **MentionBird**, Visibility → Get Share of Voice, with the same brand and **Limit** 5, to see which competitors AI answers name most.
+4. **Slack**, Send Message, with the visibility and share-of-voice figures mapped into the text.
+
+**An AI Agent that answers questions about your AI visibility**
+
+1. **Chat Trigger**.
+2. **AI Agent**, with a chat model of your choice.
+3. MentionBird tools attached to the agent: Brand → Get Many, Visibility → Get, Prompt → Get Many by Visibility and Citation → Get Top Domains. On each tool that has a **Brand**, choose **Let the model define this parameter**.
+4. Ask questions such as "Which of our prompts do we lose on ChatGPT, and which domains do those answers cite?"
+
+**Track new prompts from a spreadsheet**
+
+1. **Google Sheets Trigger**, on a row added to a sheet with a `prompt` column.
+2. **MentionBird**, Prompt → Add, with your brand, **Prompts** set to `{{ $json.prompt }}` and the AI platforms to track it on. This needs a key with write access.
+
+## Compatibility
+
+Built with `@n8n/node-cli` 0.53 and tested with self-hosted n8n 2.44.7.
 
 ## Resources
 
-* [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
-* _Link to app/service documentation._
+- [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
+- [MentionBird API documentation](https://docs.mentionbird.ai/)
+
+## Development
+
+The node's resources, operations and parameters are generated from MentionBird's `/api/v1` OpenAPI spec, so they stay in step with the API.
+
+| Path                              | What it is                                                                                                                                                                                        |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `openapi/mentionbird-api-v1.json` | The pinned copy of the spec the node is generated from.                                                                                                                                           |
+| `scripts/layout.mjs`              | How the spec's operations are laid out in n8n: the resource each one belongs to, operation names, and labels or pickers for particular parameters.                                                |
+| `scripts/generate.mjs`            | The generator. It writes `nodes/MentionBird/generated/properties.ts` and the operations table in this README.                                                                                     |
+| `nodes/MentionBird/`              | The node. Everything outside `generated/` is written by hand: paging and error handling (`hooks.ts`), the brand picker and AI-platform list (`methods.ts`), and the API address (`transport.ts`). |
+
+Commands:
+
+- `npm run spec:update` pins the live spec and regenerates. To use another source, such as a local server or a file, pass it: `npm run spec:update -- http://localhost:8040/api/v1/openapi.json`.
+- `npm run generate` regenerates from the pinned spec.
+- `npm run build` regenerates, then builds. `npm run lint` runs n8n's linter.
+
+Generation stops with an error when an operation's tag isn't mapped to a resource in `scripts/layout.mjs`, so a new tag gets a deliberate place in the node. CI fails when the committed generated code doesn't match the pinned spec.
+
+A list endpoint is read in pages of the `limit` maximum its spec declares, or 50 when it declares none, which every list endpoint accepts.
+
+### Testing against a local MentionBird
+
+Use a local copy of MentionBird with a test account, never a production API key.
+
+1. In an `llm-visibility` checkout, create an empty Postgres database and migrate it:
+
+   ```bash
+   DATABASE_URL=postgres://postgres@localhost:5432/<local db> .venv/bin/python manage.py migrate
+   ```
+
+2. In that database, create a test account with a tracked brand and data to read, and two API keys for it: one with write access, for the Add operations, and one without. To exercise paging, give a list more rows than one page.
+
+3. Run the server where n8n's container can reach it:
+
+   ```bash
+   DATABASE_URL=postgres://postgres@localhost:5432/<local db> DJANGO_SECRET_KEY=local-only DJANGO_DEBUG=1 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,host.docker.internal .venv/bin/python manage.py runserver 0.0.0.0:8040
+   ```
+
+4. Run n8n in Docker and load the built package from its custom-extensions folder:
+
+   ```bash
+   docker run -d --name n8n-dev -p 127.0.0.1:5678:5678 -v n8n-dev-data:/home/node/.n8n docker.n8n.io/n8nio/n8n
+   npm run build && npm pack
+   tar -xzf n8n-nodes-mentionbird-*.tgz
+   docker exec n8n-dev mkdir -p /home/node/.n8n/custom/node_modules
+   docker cp package n8n-dev:/home/node/.n8n/custom/node_modules/n8n-nodes-mentionbird
+   docker restart n8n-dev
+   ```
+
+   The node then appears in n8n as **MentionBird**.
+
+5. Create a **MentionBird API** credential with a key from step 2 and **Base URL** `http://host.docker.internal:8040`.
+
+### Publishing
+
+`.github/workflows/publish.yml` publishes to npm with a provenance statement when a version tag is pushed. Set up npm Trusted Publishing for this repository first (the workflow's header has the steps), then run `npm run release` to bump the version, tag and push. After publishing, check the package with:
+
+```bash
+npx @n8n/scan-community-package n8n-nodes-mentionbird
+```
 
 ## Version history
 
-_This is another optional section. If your node has multiple versions, include a short description of available versions and what changed, as well as any compatibility impact._
+### 0.1.0
+
+First release: every operation of MentionBird's `/api/v1` REST API, a brand picker, paging, and use as an AI Agent tool.

@@ -1,17 +1,26 @@
 {
   "name": "n8n-nodes-mentionbird",
   "version": "0.1.0",
-  "description": "",
+  "description": "n8n node for MentionBird: read how your brand shows up in AI answers, and add brands and prompts to track.",
   "license": "MIT",
-  "homepage": "",
-  "keywords": ["n8n-community-node-package"],
+  "homepage": "https://github.com/AdNabu-Team/n8n-nodes-mentionbird#readme",
+  "keywords": [
+    "n8n-community-node-package",
+    "mentionbird",
+    "ai-visibility",
+    "llm",
+    "generative-engine-optimization"
+  ],
   "author": { "name": "Glenn Monteiro", "email": "glenn@adnabu.com" },
   "repository": {
     "type": "git",
-    "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+    "url": "https://github.com/AdNabu-Team/n8n-nodes-mentionbird.git"
   },
+  "bugs": { "url": "https://github.com/AdNabu-Team/n8n-nodes-mentionbird/issues" },
   "scripts": {
-    "build": "n8n-node build",
+    "generate": "node scripts/generate.mjs",
+    "spec:update": "node scripts/update-spec.mjs",
+    "build": "npm run generate && n8n-node build",
     "build:watch": "tsc --watch",
     "dev": "n8n-node dev",
     "lint": "n8n-node lint",
@@ -23,8 +32,8 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "strict": true,
-    "credentials": ["dist/credentials/MentionbirdApi.credentials.js"],
-    "nodes": ["dist/nodes/Mentionbird/Mentionbird.node.js"]
+    "credentials": ["dist/credentials/MentionBirdApi.credentials.js"],
+    "nodes": ["dist/nodes/MentionBird/MentionBird.node.js"]
   },
   "devDependencies": {
     "@n8n/node-cli": "*",
