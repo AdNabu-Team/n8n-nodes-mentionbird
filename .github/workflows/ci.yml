@@ -32,3 +32,6 @@ jobs:
 
       - name: Run build
         run: 'npm run build'
+
+      - name: Check generated code matches the pinned spec
+        run: 'git diff --exit-code -- nodes/MentionBird/generated README.md'
