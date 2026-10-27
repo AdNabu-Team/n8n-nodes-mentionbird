@@ -1,0 +1,69 @@
+name: Spec sync
+
+# Pins MentionBird's live /api/v1 spec, regenerates the node, and opens or
+# updates a pull request when the result differs from main. The pull request is
+# opened with GITHUB_TOKEN, so its CI run waits for someone with write access to
+# approve it from the merge box.
+
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: spec-sync
+
+jobs:
+  sync:
+    name: Sync with the live spec
+    # The pull request's base is the branch the run checks out.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      # Push the spec-sync branch.
+      contents: write
+      # Open, update and close its pull request.
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 'lts/*'
+
+      # No install scripts in a job holding a write token; generating needs none.
+      - name: Install dependencies
+        run: 'npm ci --ignore-scripts'
+
+      - name: Pin the live spec and regenerate
+        run: 'npm run spec:update'
+
+      - name: Open or update the pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: spec-sync
+          delete-branch: true
+          add-paths: |
+            openapi/mentionbird-api-v1.json
+            nodes/MentionBird/generated
+            README.md
+          author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
+          commit-message: 'feat: sync with the live /api/v1 spec'
+          title: 'feat: sync with the live /api/v1 spec'
+          body: |
+            The live `/api/v1` spec no longer matches `openapi/mentionbird-api-v1.json`. This pins the live copy and regenerates the node from it.
+
+            Before merging:
+
+            1. Approve the CI run in the merge box. A pull request opened with `GITHUB_TOKEN` starts its checks only after someone with write access approves them.
+            2. Read the diff of `nodes/MentionBird/generated/properties.ts`, and check the names and labels of any new operations and parameters.
+            3. If `nodes/MentionBird/generated/` changed, release a new version after merging (README, "Publishing").
+            4. Make any change to `scripts/layout.mjs` on `main`, then run this workflow again from the Actions tab. The next run replaces any commit pushed to this branch.
