@@ -89,6 +89,8 @@ in `README.md`.
 - **Never edit the generated file by hand.** Change the layout in
   `scripts/layout.mjs` or the generator, then run `npm run generate`.
 - `npm run spec:update` pins a newer spec and regenerates.
+  `.github/workflows/spec-sync.yml` runs it every Monday and opens a pull
+  request when the output changes.
 - Commit the regenerated file with the change that caused it; CI fails when
   it doesn't match the pinned spec.
 

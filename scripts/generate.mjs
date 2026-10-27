@@ -61,7 +61,7 @@ const bodyParameters = (operation) => {
 	}));
 };
 
-const specOperations = (spec) =>
+export const specOperations = (spec) =>
 	Object.entries(spec.paths).flatMap(([path, item]) =>
 		HTTP_METHODS.filter((method) => item[method]).map((method) => ({
 			...item[method],

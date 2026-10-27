@@ -131,6 +131,23 @@ Generation stops with an error when an operation's tag isn't mapped to a resourc
 
 A list endpoint is read in pages of the `limit` maximum its spec declares, or 50 when it declares none, which every list endpoint accepts.
 
+### Keeping up with the API
+
+Every Monday, `.github/workflows/spec-sync.yml` runs `npm run spec:update` against the live API. When the pinned spec or the regenerated node differs from `main`, it opens a pull request from the `spec-sync` branch, or updates the one already open. A later run that finds no difference closes it. To review one:
+
+1. Approve its CI run in the merge box. A pull request opened with the workflow's `GITHUB_TOKEN` starts its checks only after someone with write access approves them.
+2. Read the diff of `nodes/MentionBird/generated/properties.ts`, and check the names and labels of any new operations and parameters.
+3. If `nodes/MentionBird/generated/` changed, release a new version after merging (see [Publishing](#publishing)).
+
+Make any change to the layout on `main`, then run the workflow again from the Actions tab: each run rebuilds the `spec-sync` branch from `main`, replacing any commit pushed to it.
+
+The run fails instead of opening a pull request when:
+
+- the live spec drops an operation or parameter that the pinned spec has. `/api/v1` only grows, so this usually means an older or broken deploy. To follow a removal on purpose, run `npm run spec:update -- --allow-removals` locally.
+- an operation arrives under a tag that `scripts/layout.mjs` doesn't map. Map the tag, then run the workflow again.
+
+In a public repository, GitHub turns off a scheduled workflow after 60 days without repository activity. Turn it back on from the Actions tab or with `gh workflow enable spec-sync.yml`.
+
 ### Testing against a local MentionBird
 
 Use a local copy of MentionBird with a test account, never a production API key.
