@@ -50,10 +50,25 @@ export class MentionBirdApi implements ICredentialType {
 		},
 	};
 
+	// n8n shows only the HTTP status text when a test fails, never the API's
+	// message. From MentionBird's API, a 403 on this endpoint always means the
+	// key is valid but its workspace's plan has no API access. n8n can't tell
+	// that 403 from one sent by a proxy or another host, so those get the same
+	// message.
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: API_BASE_URL_EXPRESSION,
 			url: '/brands/tracked',
 		},
+		rules: [
+			{
+				type: 'responseCode',
+				properties: {
+					value: 403,
+					message:
+						"This key's workspace is on a plan without API access. Upgrade that workspace's MentionBird plan to use this key.",
+				},
+			},
+		],
 	};
 }
