@@ -49,6 +49,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -103,6 +115,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -135,6 +159,18 @@
 					},
 					"405": {
 						"description": "Method not allowed."
+					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
 					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
@@ -189,6 +225,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -233,10 +281,78 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
 				},
+				"tags": [
+					"Discovery"
+				]
+			}
+		},
+		"/brands/competitors": {
+			"get": {
+				"summary": "List Competitors",
+				"operationId": "listCompetitors",
+				"description": "List the competitors tracked for a brand, with each one's domain. getTopMentionedBrands marks their rows is_tracked_competitor.",
+				"responses": {
+					"200": {
+						"description": "Tracked competitors in name order; domain is null when unknown. A competitor gets a row in getTopMentionedBrands only when answers in the range named it, and not even then when every spelling of it falls inside the tracked brand's own spellings or an earlier-added competitor's: its mentions count under that row instead."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					}
+				],
 				"tags": [
 					"Discovery"
 				]
@@ -265,6 +381,18 @@
 					},
 					"405": {
 						"description": "Method not allowed."
+					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
 					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
@@ -303,7 +431,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -378,6 +506,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -399,7 +539,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -468,9 +608,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 20
+							"default": 20,
+							"minimum": 1,
+							"maximum": 100
 						},
-						"description": "Max rows (default 20, max 100)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–100."
 					},
 					{
 						"name": "offset",
@@ -478,9 +620,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -512,6 +655,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -533,7 +688,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -645,7 +800,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "Filter by who owns the domain: 'yours', 'earned', 'competitor', or 'competitor:<name>'."
+						"description": "Filter by who owns the domain: 'yours', 'earned', 'competitor', or 'competitor:<name>' with a name from listCompetitors."
 					},
 					{
 						"name": "search",
@@ -662,9 +817,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 20
+							"default": 20,
+							"minimum": 1,
+							"maximum": 100
 						},
-						"description": "Max rows (default 20, max 100)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–100."
 					},
 					{
 						"name": "offset",
@@ -672,9 +829,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -706,6 +864,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -727,7 +897,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -839,9 +1009,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 20
+							"default": 20,
+							"minimum": 1,
+							"maximum": 100
 						},
-						"description": "Max rows (default 20, max 100)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–100."
 					},
 					{
 						"name": "offset",
@@ -849,9 +1021,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -883,10 +1056,187 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
 				},
+				"tags": [
+					"Citations"
+				]
+			}
+		},
+		"/citations/breakdown": {
+			"get": {
+				"summary": "Get Citation Breakdown",
+				"operationId": "getCitationBreakdown",
+				"description": "The kinds of sources AI platforms cite when answering this brand's prompts: those citations grouped by source_type (kind of site), content_type (kind of page) or url_status (link health).",
+				"responses": {
+					"200": {
+						"description": "Groups ranked by citation_count, each with share_pct of the counts summed over every group. Under source_type and content_type, citations not yet tagged on that dimension are left out of both; under url_status, a link not yet checked counts as unknown. A citation tagged with several page categories counts once under each of them. The domain, source_type, content_type and url_status filters narrow the citations before grouping, and each citation still counts under every category it carries: content_type=listicle with dimension=content_type also returns the other page categories those listicles are tagged with."
+					},
+					"400": {
+						"description": "Validation error — check the message in `error.message`."
+					},
+					"401": {
+						"description": "Unauthorized — missing, invalid or revoked bearer token."
+					},
+					"403": {
+						"description": "Forbidden — plan lacks API access, or key is read-only."
+					},
+					"404": {
+						"description": "Not found — the brand, prompt or resource does not exist."
+					},
+					"405": {
+						"description": "Method not allowed."
+					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal error — logged; retry is safe for reads."
+					}
+				},
+				"parameters": [
+					{
+						"name": "brand",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Tracked brand name, exactly as returned by listTrackedBrands."
+					},
+					{
+						"name": "start_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
+					},
+					{
+						"name": "end_date",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+					},
+					{
+						"name": "dimension",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"default": "source_type",
+							"enum": [
+								"source_type",
+								"content_type",
+								"url_status"
+							]
+						},
+						"description": "What to group the citations by."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "llm_provider",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"openai",
+								"claude",
+								"gemini",
+								"perplexity",
+								"grok"
+							]
+						},
+						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "domain",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one domain."
+					},
+					{
+						"name": "source_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Site category — see listCitationTags."
+					},
+					{
+						"name": "content_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Page category — see listCitationTags."
+					},
+					{
+						"name": "url_status",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"unknown",
+								"alive",
+								"dead",
+								"redirect"
+							]
+						},
+						"description": "Link health filter."
+					}
+				],
 				"tags": [
 					"Citations"
 				]
@@ -916,6 +1266,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -937,7 +1299,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -994,6 +1356,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -1015,7 +1389,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -1098,9 +1472,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 20
+							"default": 20,
+							"minimum": 1,
+							"maximum": 100
 						},
-						"description": "Max rows (default 20, max 100)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–100."
 					},
 					{
 						"name": "offset",
@@ -1108,9 +1484,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -1142,6 +1519,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -1170,9 +1559,12 @@
 						"in": "query",
 						"required": false,
 						"schema": {
-							"type": "integer"
+							"type": "integer",
+							"default": 30,
+							"minimum": 1,
+							"maximum": 365
 						},
-						"description": "Trailing window in days (default 30, max 365)."
+						"description": "Trailing window in days. A value outside the range is a 400. Allowed: 1–365."
 					}
 				],
 				"tags": [
@@ -1203,6 +1595,18 @@
 					},
 					"405": {
 						"description": "Method not allowed."
+					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
 					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
@@ -1239,7 +1643,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -1289,18 +1693,22 @@
 						"in": "query",
 						"required": false,
 						"schema": {
-							"type": "integer"
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 10
 						},
-						"description": "Minimum volume bucket (1-10)."
+						"description": "Minimum volume bucket. A value outside the range is a 400. Allowed: 1–10."
 					},
 					{
 						"name": "max_difficulty",
 						"in": "query",
 						"required": false,
 						"schema": {
-							"type": "integer"
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 10
 						},
-						"description": "Maximum difficulty bucket (1-10)."
+						"description": "Maximum difficulty bucket. A value outside the range is a 400. Allowed: 1–10."
 					},
 					{
 						"name": "search",
@@ -1317,9 +1725,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 50
+							"default": 50,
+							"minimum": 1,
+							"maximum": 100
 						},
-						"description": "Max rows (default 50, max 100)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–100."
 					},
 					{
 						"name": "offset",
@@ -1327,9 +1737,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -1361,6 +1772,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -1389,9 +1812,12 @@
 						"in": "query",
 						"required": false,
 						"schema": {
-							"type": "integer"
+							"type": "integer",
+							"default": 10,
+							"minimum": 1,
+							"maximum": 50
 						},
-						"description": "Max runs to return."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–50."
 					},
 					{
 						"name": "offset",
@@ -1399,9 +1825,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -1433,6 +1860,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -1453,9 +1892,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 20
+							"default": 20,
+							"minimum": 1,
+							"maximum": 50
 						},
-						"description": "Max rows (default 20)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–50."
 					},
 					{
 						"name": "offset",
@@ -1463,9 +1904,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					},
 					{
 						"name": "status",
@@ -1520,6 +1962,18 @@
 					},
 					"405": {
 						"description": "Method not allowed."
+					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
 					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
@@ -1576,7 +2030,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -1593,9 +2047,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 5
+							"default": 5,
+							"minimum": 1,
+							"maximum": 100
 						},
-						"description": "Max rows (default 5, max 100)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–100."
 					},
 					{
 						"name": "offset",
@@ -1603,9 +2059,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -1648,6 +2105,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -1681,6 +2150,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -1702,7 +2183,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago."
+						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
 					},
 					{
 						"name": "end_date",
@@ -1728,9 +2209,11 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 20
+							"default": 20,
+							"minimum": 1,
+							"maximum": 100
 						},
-						"description": "Max rows (default 20, max 100)."
+						"description": "Rows per page. A value over the maximum reads as the maximum and sets filters_applied.limit_clamped. Allowed: 1–100."
 					},
 					{
 						"name": "offset",
@@ -1738,9 +2221,10 @@
 						"required": false,
 						"schema": {
 							"type": "integer",
-							"default": 0
+							"default": 0,
+							"minimum": 0
 						},
-						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `limit`."
+						"description": "Rows to skip — the cursor for reading past `limit`. Default 0. While `has_more` is true, repeat with offset advanced by `returned_count`. Allowed: 0 or more."
 					}
 				],
 				"tags": [
@@ -1771,6 +2255,18 @@
 					},
 					"405": {
 						"description": "Method not allowed."
+					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
 					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
@@ -1835,16 +2331,20 @@
 									"prompts": {
 										"type": "array",
 										"items": {
-											"type": "string"
+											"type": "string",
+											"maxLength": 2000
 										},
-										"description": "The prompts to track (max 50)."
+										"minItems": 1,
+										"maxItems": 50,
+										"description": "The prompts to track. Blank and repeated ones don't count toward the maximum. More than the maximum, or a prompt over the length limit, is a 400. Allowed: 1–50 items, each up to 2,000 characters."
 									},
 									"llms": {
 										"type": "array",
 										"items": {
 											"type": "string"
 										},
-										"description": "Platform slugs, e.g. ['openai', 'claude']. Must be allowed by the account's plan."
+										"minItems": 1,
+										"description": "Platform slugs the plan allows, e.g. ['openai', 'claude']. Allowed: 1 or more items."
 									},
 									"country": {
 										"type": "string",
@@ -1854,9 +2354,11 @@
 									"tags": {
 										"type": "array",
 										"items": {
-											"type": "string"
+											"type": "string",
+											"maxLength": 100
 										},
-										"description": "Tags to attach (max 10)."
+										"maxItems": 10,
+										"description": "Tags to attach to every prompt in the call. Repeats, ignoring case and spacing, don't count toward the maximum. More than the maximum, or a tag over the length limit, is a 400. Allowed: up to 10 items, each up to 100 characters."
 									}
 								}
 							}
@@ -1882,6 +2384,18 @@
 					"405": {
 						"description": "Method not allowed."
 					},
+					"429": {
+						"description": "Too many requests — over the key's per-minute or per-day limit. Wait the seconds in the `Retry-After` header, then retry.",
+						"headers": {
+							"Retry-After": {
+								"description": "Seconds to wait before retrying.",
+								"schema": {
+									"type": "integer",
+									"minimum": 1
+								}
+							}
+						}
+					},
 					"500": {
 						"description": "Internal error — logged; retry is safe for reads."
 					}
@@ -1895,7 +2409,7 @@
 	"tags": [
 		{
 			"name": "Discovery",
-			"description": "Find the brands, prompts, tags and AI platforms this workspace tracks. Start here — most other endpoints take a brand name or prompt ID returned by these."
+			"description": "Find the brands, competitors, prompts, tags and AI platforms this workspace tracks. Start here — most other endpoints take a brand name or prompt ID returned by these."
 		},
 		{
 			"name": "Visibility",

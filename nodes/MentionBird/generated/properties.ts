@@ -6,7 +6,7 @@ import type { INodeProperties } from 'n8n-workflow';
 import { paginateListEnvelope, splitListEnvelope, throwOnApiError } from '../hooks';
 
 export const subtitle =
-	'={{ ({"listLLMProviders":"Get many AI platforms","listQueryRuns":"Get many AI answers","getQueryRun":"Get an AI answer","listTrackedBrands":"Get many tracked brands","addTrackedBrand":"Add a tracked brand","listCitations":"Get many citations","getTopCitationDomains":"Get top cited domains","getOwnedSourceShare":"Get owned vs earned citation share","listCitationTags":"Get citation taxonomy","listQueries":"Get many tracked prompts","listQueryTags":"Get prompt tags","listPromptsByVisibility":"Get prompts ranked by visibility","getPromptBrandLeaderboard":"Get the brand leaderboard for a prompt","getRankingAdvice":"Get ranking advice for a prompt","listRankingAdvice":"Get ranking advice runs across prompts","addPrompts":"Add prompts to track","getVisibility":"Get brand visibility","getTopMentionedBrands":"Get share of voice","getTopWebSearches":"Get many web searches","listYouTubeSummaries":"Get many video summaries","getYouTubeSummary":"Get a video summary"})[$parameter["operation"]] }}';
+	'={{ ({"listLLMProviders":"Get many AI platforms","listQueryRuns":"Get many AI answers","getQueryRun":"Get an AI answer","listTrackedBrands":"Get many tracked brands","addTrackedBrand":"Add a tracked brand","listCompetitors":"Get competitors of a brand","listCitations":"Get many citations","getTopCitationDomains":"Get top cited domains","getOwnedSourceShare":"Get owned vs earned citation share","getCitationBreakdown":"Get citation breakdown","listCitationTags":"Get citation taxonomy","listQueries":"Get many tracked prompts","listQueryTags":"Get prompt tags","listPromptsByVisibility":"Get prompts ranked by visibility","getPromptBrandLeaderboard":"Get the brand leaderboard for a prompt","getRankingAdvice":"Get ranking advice for a prompt","listRankingAdvice":"Get ranking advice runs across prompts","addPrompts":"Add prompts to track","getVisibility":"Get brand visibility","getTopMentionedBrands":"Get share of voice","getTopWebSearches":"Get many web searches","listYouTubeSummaries":"Get many video summaries","getYouTubeSummary":"Get a video summary"})[$parameter["operation"]] }}';
 
 export const resourceProperty: INodeProperties = {
 	displayName: 'Resource',
@@ -100,7 +100,7 @@ export const operationProperties: INodeProperties[] = [
 				routing: {
 					request: { method: 'GET', url: '/query-runs' },
 					send: { paginate: true },
-					operations: { pagination: paginateListEnvelope(50) },
+					operations: { pagination: paginateListEnvelope(100) },
 					output: { postReceive: [throwOnApiError] },
 				},
 			},
@@ -211,7 +211,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
@@ -240,6 +241,17 @@ export const operationProperties: INodeProperties[] = [
 				description: 'Start tracking a new brand. Requires a write-enabled API key.',
 				routing: {
 					request: { method: 'POST', url: '/brands/tracked' },
+					output: { postReceive: [throwOnApiError, splitListEnvelope] },
+				},
+			},
+			{
+				name: 'Get Competitors',
+				value: 'listCompetitors',
+				action: 'Get competitors of a brand',
+				description:
+					"List the competitors tracked for a brand, with each one's domain. Visibility → Get Share of Voice marks their rows is_tracked_competitor.",
+				routing: {
+					request: { method: 'GET', url: '/brands/competitors' },
 					output: { postReceive: [throwOnApiError, splitListEnvelope] },
 				},
 			},
@@ -311,12 +323,64 @@ export const operationProperties: INodeProperties[] = [
 		],
 	},
 	{
+		displayName: 'Brand',
+		name: 'brand',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchBrands', searchable: true },
+			},
+			{ displayName: 'By Name', name: 'name', type: 'string', placeholder: 'e.g. Acme' },
+		],
+		description: 'Tracked brand name, exactly as returned by Brand → Get Many',
+		routing: { send: { type: 'query', property: 'brand' } },
+		required: true,
+		displayOptions: { show: { resource: ['brand'], operation: ['listCompetitors'] } },
+	},
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: { show: { resource: ['brand'], operation: ['listCompetitors'] } },
+		options: [
+			{
+				displayName: 'Output',
+				name: 'output',
+				type: 'options',
+				options: [
+					{ name: 'One Item per Row', value: 'rows' },
+					{ name: 'Whole Response', value: 'response' },
+				],
+				default: 'rows',
+				description:
+					"How to output a list: one item per row, or the whole response as one item, with the rows in 'items' next to the totals and summary fields. A response that isn't a list is always one item.",
+			},
+		],
+	},
+	{
 		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: ['citation'] } },
 		options: [
+			{
+				name: 'Get Breakdown',
+				value: 'getCitationBreakdown',
+				action: 'Get citation breakdown',
+				description:
+					"The kinds of sources AI platforms cite when answering this brand's prompts: those citations grouped by 'Source Type' (kind of site), 'Content Type' (kind of page) or 'URL Status' (link health)",
+				routing: {
+					request: { method: 'GET', url: '/citations/breakdown' },
+					output: { postReceive: [throwOnApiError, splitListEnvelope] },
+				},
+			},
 			{
 				name: 'Get Many',
 				value: 'listCitations',
@@ -325,7 +389,7 @@ export const operationProperties: INodeProperties[] = [
 				routing: {
 					request: { method: 'GET', url: '/citations' },
 					send: { paginate: true },
-					operations: { pagination: paginateListEnvelope(50) },
+					operations: { pagination: paginateListEnvelope(100) },
 					output: { postReceive: [throwOnApiError] },
 				},
 			},
@@ -359,7 +423,7 @@ export const operationProperties: INodeProperties[] = [
 				routing: {
 					request: { method: 'GET', url: '/citations/domains' },
 					send: { paginate: true },
-					operations: { pagination: paginateListEnvelope(50) },
+					operations: { pagination: paginateListEnvelope(100) },
 					output: { postReceive: [throwOnApiError] },
 				},
 			},
@@ -510,7 +574,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
@@ -651,7 +716,7 @@ export const operationProperties: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description:
-					"Filter by who owns the domain: 'yours', 'earned', 'competitor', or 'competitor:&lt;name&gt;'",
+					"Filter by who owns the domain: 'yours', 'earned', 'competitor', or 'competitor:&lt;name&gt;' with a name from Brand → Get Competitors",
 				routing: { send: { type: 'query', property: 'ownership' } },
 			},
 			{
@@ -691,7 +756,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
@@ -779,9 +845,153 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
+			},
+		],
+	},
+	{
+		displayName: 'Brand',
+		name: 'brand',
+		type: 'resourceLocator',
+		default: { mode: 'list', value: '' },
+		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				typeOptions: { searchListMethod: 'searchBrands', searchable: true },
+			},
+			{ displayName: 'By Name', name: 'name', type: 'string', placeholder: 'e.g. Acme' },
+		],
+		description: 'Tracked brand name, exactly as returned by Brand → Get Many',
+		routing: { send: { type: 'query', property: 'brand' } },
+		required: true,
+		displayOptions: { show: { resource: ['citation'], operation: ['getCitationBreakdown'] } },
+	},
+	{
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: { show: { resource: ['citation'], operation: ['getCitationBreakdown'] } },
+		options: [
+			{
+				displayName: 'AI Platform',
+				name: 'llmProvider',
+				type: 'options',
+				options: [
+					{ name: 'ChatGPT', value: 'openai' },
+					{ name: 'Claude', value: 'claude' },
+					{ name: 'Gemini', value: 'gemini' },
+					{ name: 'Grok', value: 'grok' },
+					{ name: 'Perplexity', value: 'perplexity' },
+				],
+				default: 'openai',
+				description: 'Filter to one AI platform',
+				routing: { send: { type: 'query', property: 'llm_provider' } },
+			},
+			{
+				displayName: 'Content Type',
+				name: 'contentType',
+				type: 'string',
+				default: '',
+				description: 'Page category — see Citation → Get Taxonomy',
+				routing: { send: { type: 'query', property: 'content_type' } },
+			},
+			{
+				displayName: 'Dimension',
+				name: 'dimension',
+				type: 'options',
+				options: [
+					{ name: 'Content Type', value: 'content_type' },
+					{ name: 'Source Type', value: 'source_type' },
+					{ name: 'URL Status', value: 'url_status' },
+				],
+				default: 'source_type',
+				description: 'What to group the citations by',
+				routing: { send: { type: 'query', property: 'dimension' } },
+			},
+			{
+				displayName: 'Domain',
+				name: 'domain',
+				type: 'string',
+				default: '',
+				description: 'Filter to one domain',
+				placeholder: 'e.g. example.com',
+				routing: { send: { type: 'query', property: 'domain' } },
+			},
+			{
+				displayName: 'End Date',
+				name: 'endDate',
+				type: 'string',
+				default: '',
+				description: 'ISO end date (YYYY-MM-DD). Defaults to today.',
+				placeholder: 'e.g. 2026-01-31',
+				routing: { send: { type: 'query', property: 'end_date' } },
+			},
+			{
+				displayName: 'Output',
+				name: 'output',
+				type: 'options',
+				options: [
+					{ name: 'One Item per Row', value: 'rows' },
+					{ name: 'Whole Response', value: 'response' },
+				],
+				default: 'rows',
+				description:
+					"How to output a list: one item per row, or the whole response as one item, with the rows in 'items' next to the totals and summary fields. A response that isn't a list is always one item.",
+			},
+			{
+				displayName: 'Prompt ID',
+				name: 'brandPromptId',
+				type: 'string',
+				default: '',
+				description: 'Limit to one prompt — token from Prompt → Get Many',
+				routing: { send: { type: 'query', property: 'brand_prompt_id' } },
+			},
+			{
+				displayName: 'Prompt Tag',
+				name: 'queryTag',
+				type: 'string',
+				default: '',
+				description: 'Filter to one tag slug',
+				routing: { send: { type: 'query', property: 'query_tag' } },
+			},
+			{
+				displayName: 'Source Type',
+				name: 'sourceType',
+				type: 'string',
+				default: '',
+				description: 'Site category — see Citation → Get Taxonomy',
+				routing: { send: { type: 'query', property: 'source_type' } },
+			},
+			{
+				displayName: 'Start Date',
+				name: 'startDate',
+				type: 'string',
+				default: '',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
+				placeholder: 'e.g. 2026-01-01',
+				routing: { send: { type: 'query', property: 'start_date' } },
+			},
+			{
+				displayName: 'URL Status',
+				name: 'urlStatus',
+				type: 'options',
+				options: [
+					{ name: 'Alive', value: 'alive' },
+					{ name: 'Dead', value: 'dead' },
+					{ name: 'Redirect', value: 'redirect' },
+					{ name: 'Unknown', value: 'unknown' },
+				],
+				default: 'unknown',
+				description: 'Link health filter',
+				routing: { send: { type: 'query', property: 'url_status' } },
 			},
 		],
 	},
@@ -856,7 +1066,7 @@ export const operationProperties: INodeProperties[] = [
 				routing: {
 					request: { method: 'GET', url: '/prompts/by-visibility' },
 					send: { paginate: true },
-					operations: { pagination: paginateListEnvelope(50) },
+					operations: { pagination: paginateListEnvelope(100) },
 					output: { postReceive: [throwOnApiError] },
 				},
 			},
@@ -1074,7 +1284,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'maxDifficulty',
 				type: 'number',
 				default: 10,
-				description: 'Maximum difficulty bucket (1-10)',
+				description:
+					'Maximum difficulty bucket. A value outside the range is a 400. Allowed: 1–10.',
 				routing: { send: { type: 'query', property: 'max_difficulty' } },
 			},
 			{
@@ -1082,7 +1293,7 @@ export const operationProperties: INodeProperties[] = [
 				name: 'minSearchVolume',
 				type: 'number',
 				default: 1,
-				description: 'Minimum volume bucket (1-10)',
+				description: 'Minimum volume bucket. A value outside the range is a 400. Allowed: 1–10.',
 				routing: { send: { type: 'query', property: 'min_search_volume' } },
 			},
 			{
@@ -1130,7 +1341,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
@@ -1190,7 +1402,7 @@ export const operationProperties: INodeProperties[] = [
 				name: 'windowDays',
 				type: 'number',
 				default: 30,
-				description: 'Trailing window in days (default 30, max 365)',
+				description: 'Trailing window in days. A value outside the range is a 400. Allowed: 1–365.',
 				routing: { send: { type: 'query', property: 'window_days' } },
 			},
 		],
@@ -1373,7 +1585,7 @@ export const operationProperties: INodeProperties[] = [
 		typeOptions: { rows: 4 },
 		default: '',
 		description:
-			'The prompts to track (max 50). One per line, or an expression that returns an array.',
+			"The prompts to track. Blank and repeated ones don't count toward the maximum. More than the maximum, or a prompt over the length limit, is a 400. Allowed: 1–50 items, each up to 2,000 characters. One per line, or an expression that returns an array.",
 		routing: {
 			send: {
 				type: 'body',
@@ -1421,7 +1633,7 @@ export const operationProperties: INodeProperties[] = [
 				typeOptions: { rows: 4 },
 				default: '',
 				description:
-					'Tags to attach (max 10). One per line, or an expression that returns an array.',
+					"Tags to attach to every prompt in the call. Repeats, ignoring case and spacing, don't count toward the maximum. More than the maximum, or a tag over the length limit, is a 400. Allowed: up to 10 items, each up to 100 characters. One per line, or an expression that returns an array.",
 				routing: {
 					send: {
 						type: 'body',
@@ -1460,7 +1672,7 @@ export const operationProperties: INodeProperties[] = [
 				routing: {
 					request: { method: 'GET', url: '/brands/top-mentioned' },
 					send: { paginate: true },
-					operations: { pagination: paginateListEnvelope(50) },
+					operations: { pagination: paginateListEnvelope(100) },
 					output: { postReceive: [throwOnApiError] },
 				},
 			},
@@ -1565,7 +1777,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
@@ -1690,7 +1903,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
@@ -1712,7 +1926,7 @@ export const operationProperties: INodeProperties[] = [
 				routing: {
 					request: { method: 'GET', url: '/searches' },
 					send: { paginate: true },
-					operations: { pagination: paginateListEnvelope(50) },
+					operations: { pagination: paginateListEnvelope(100) },
 					output: { postReceive: [throwOnApiError] },
 				},
 			},
@@ -1853,7 +2067,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
@@ -1884,7 +2099,7 @@ export const operationProperties: INodeProperties[] = [
 				routing: {
 					request: { method: 'GET', url: '/youtube/summaries' },
 					send: { paginate: true },
-					operations: { pagination: paginateListEnvelope(50) },
+					operations: { pagination: paginateListEnvelope(100) },
 					output: { postReceive: [throwOnApiError] },
 				},
 			},
@@ -1971,7 +2186,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'startDate',
 				type: 'string',
 				default: '',
-				description: 'ISO start date (YYYY-MM-DD). Defaults to 30 days ago.',
+				description:
+					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},
