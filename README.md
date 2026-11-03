@@ -193,7 +193,30 @@ Test with a MentionBird workspace kept for testing. The **Add** operations creat
 
 ### Publishing
 
-`.github/workflows/publish.yml` publishes to npm with a provenance statement when a version tag is pushed. Set up npm Trusted Publishing for this repository first (the workflow's header has the steps), then run `npm run release` to bump the version, tag and push. After publishing, check the package with:
+`.github/workflows/publish.yml` publishes to npm with a provenance statement when a version tag is pushed. It runs in the `npm` GitHub environment, which admits only version tags (`*.*.*`) and waits for a required reviewer to approve the run in the Actions tab.
+
+To release, run `npm run release` on `main`: it bumps the version, tags and pushes. Then approve the waiting Publish run.
+
+#### First release
+
+npm's Trusted Publishing, which publishes with no stored token, can only be set up for a package that already exists. So the first version is published with a token, in this order:
+
+1. Make the repository public. npm rejects provenance from a private repository.
+2. In the repository's settings, under **Environments → npm**, add the required reviewers. GitHub's Team plan offers required reviewers only on public repositories.
+3. On npmjs.com, signed in as the account that will own the package, create a granular access token:
+   - **Read and write (publish and stage)** on all packages. A token can't name a package that doesn't exist yet, so it can also publish any other package the account can.
+   - Two-factor authentication bypassed.
+   - A short expiry.
+
+   Save it as a secret of the `npm` environment, named `NPM_TOKEN`. npm is removing direct publishing with tokens that bypass two-factor authentication, targeting January 2027.
+
+4. On `main`, tag the version already in `package.json` and push the tag: `git tag 0.1.0 && git push origin 0.1.0`. `npm run release` always bumps the version, so it can't publish that one. Approve the Publish run.
+5. Once the package is on npm, delete the `NPM_TOKEN` secret and revoke the token.
+6. Before the next release, add a trusted publisher in the package's settings on npmjs.com: GitHub Actions, `AdNabu-Team/n8n-nodes-mentionbird`, workflow `publish.yml`, environment `npm`. A new trusted publisher expires unless it publishes within 2 days, so release soon after. Then set the package's publishing access to require two-factor authentication and disallow tokens.
+
+`package.json` sets `publishConfig.access` to `public`: npm generates provenance for a package's first version only with public access.
+
+After publishing, check the package with:
 
 ```bash
 npx @n8n/scan-community-package n8n-nodes-mentionbird
