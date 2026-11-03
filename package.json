@@ -11,7 +11,7 @@
     "llm",
     "generative-engine-optimization"
   ],
-  "author": { "name": "Glenn Monteiro", "email": "glenn@adnabu.com" },
+  "author": { "name": "MentionBird", "email": "support@mentionbird.ai" },
   "repository": {
     "type": "git",
     "url": "https://github.com/AdNabu-Team/n8n-nodes-mentionbird.git"
