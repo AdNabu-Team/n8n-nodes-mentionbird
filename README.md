@@ -172,25 +172,11 @@ The run fails instead of opening a pull request when:
 
 In a public repository, GitHub turns off a scheduled workflow after 60 days without repository activity. Turn it back on from the Actions tab or with `gh workflow enable spec-sync.yml`.
 
-### Testing against a local MentionBird
+### Testing in n8n
 
-Use a local copy of MentionBird with a test account, never a production API key.
+Test with a MentionBird workspace kept for testing. The **Add** operations create real brands and prompts in it, which count toward its plan, and adding prompts queues their first crawl. A read-only key covers every other operation.
 
-1. In an `llm-visibility` checkout, create an empty Postgres database and migrate it:
-
-   ```bash
-   DATABASE_URL=postgres://postgres@localhost:5432/<local db> .venv/bin/python manage.py migrate
-   ```
-
-2. In that database, create a test account with a tracked brand and data to read, and two API keys for it: one with write access, for the Add operations, and one without. To exercise paging, give a list more rows than one page.
-
-3. Run the server where n8n's container can reach it:
-
-   ```bash
-   DATABASE_URL=postgres://postgres@localhost:5432/<local db> DJANGO_SECRET_KEY=local-only DJANGO_DEBUG=1 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,host.docker.internal .venv/bin/python manage.py runserver 0.0.0.0:8040
-   ```
-
-4. Run n8n in Docker and load the built package from its custom-extensions folder:
+1. Run n8n in Docker and load the built package from its custom-extensions folder:
 
    ```bash
    docker run -d --name n8n-dev -p 127.0.0.1:5678:5678 -v n8n-dev-data:/home/node/.n8n docker.n8n.io/n8nio/n8n
@@ -203,7 +189,7 @@ Use a local copy of MentionBird with a test account, never a production API key.
 
    The node then appears in n8n as **MentionBird**.
 
-5. Create a **MentionBird API** credential with a key from step 2 and **Base URL** `http://host.docker.internal:8040`.
+2. Create a **MentionBird API** credential with a key from that workspace, as described under [Credentials](#credentials).
 
 ### Publishing
 
