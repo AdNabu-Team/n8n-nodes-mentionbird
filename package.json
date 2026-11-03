@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "n8n node for MentionBird: read how your brand shows up in AI answers, and add brands and prompts to track.",
   "license": "MIT",
+  "publishConfig": { "access": "public" },
   "homepage": "https://github.com/AdNabu-Team/n8n-nodes-mentionbird#readme",
   "keywords": [
     "n8n-community-node-package",
