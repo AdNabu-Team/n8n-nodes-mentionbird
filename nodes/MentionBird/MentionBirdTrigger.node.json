@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-mentionbird.mentionBirdTrigger",
+	"node": "@mentionbird/n8n-nodes-mentionbird.mentionBirdTrigger",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Analytics", "Marketing & Content"],

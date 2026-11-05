@@ -1,4 +1,4 @@
-# n8n-nodes-mentionbird
+# @mentionbird/n8n-nodes-mentionbird
 
 This is an n8n community node for [MentionBird](https://mentionbird.ai). It lets you use your MentionBird data in n8n workflows, start workflows when it changes, and give it to an AI Agent as a tool.
 
@@ -19,7 +19,7 @@ MentionBird tracks how a brand shows up in AI answers on ChatGPT, Claude, Gemini
 
 ## Installation
 
-Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation, and install `n8n-nodes-mentionbird`.
+Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation, and install `@mentionbird/n8n-nodes-mentionbird`.
 
 ## Credentials
 
@@ -181,9 +181,9 @@ Test with a MentionBird workspace kept for testing. The **Add** operations creat
    ```bash
    docker run -d --name n8n-dev -p 127.0.0.1:5678:5678 -v n8n-dev-data:/home/node/.n8n docker.n8n.io/n8nio/n8n
    npm run build && npm pack
-   tar -xzf n8n-nodes-mentionbird-*.tgz
-   docker exec n8n-dev mkdir -p /home/node/.n8n/custom/node_modules
-   docker cp package n8n-dev:/home/node/.n8n/custom/node_modules/n8n-nodes-mentionbird
+   tar -xzf mentionbird-n8n-nodes-mentionbird-*.tgz
+   docker exec n8n-dev mkdir -p /home/node/.n8n/custom/node_modules/@mentionbird
+   docker cp package n8n-dev:/home/node/.n8n/custom/node_modules/@mentionbird/n8n-nodes-mentionbird
    docker restart n8n-dev
    ```
 
@@ -214,12 +214,12 @@ npm's Trusted Publishing, which publishes with no stored token, can only be set 
 5. Once the package is on npm, delete the `NPM_TOKEN` secret and revoke the token.
 6. Before the next release, add a trusted publisher in the package's settings on npmjs.com: GitHub Actions, `AdNabu-Team/n8n-nodes-mentionbird`, workflow `publish.yml`, environment `npm`. A new trusted publisher expires unless it publishes within 2 days, so release soon after. Then set the package's publishing access to require two-factor authentication and disallow tokens.
 
-`package.json` sets `publishConfig.access` to `public`: npm generates provenance for a package's first version only with public access.
+`package.json` sets `publishConfig.access` to `public`. npm otherwise publishes a scoped package as private, and it generates provenance for a package's first version only with public access.
 
 After publishing, check the package with:
 
 ```bash
-npx @n8n/scan-community-package n8n-nodes-mentionbird
+npx @n8n/scan-community-package @mentionbird/n8n-nodes-mentionbird
 ```
 
 ## Version history
