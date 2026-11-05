@@ -15,7 +15,7 @@
   "author": { "name": "MentionBird", "email": "support@mentionbird.ai" },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AdNabu-Team/n8n-nodes-mentionbird.git"
+    "url": "git+https://github.com/AdNabu-Team/n8n-nodes-mentionbird.git"
   },
   "bugs": { "url": "https://github.com/AdNabu-Team/n8n-nodes-mentionbird/issues" },
   "scripts": {
