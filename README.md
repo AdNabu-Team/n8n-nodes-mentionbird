@@ -212,7 +212,7 @@ npm's Trusted Publishing, which publishes with no stored token, can only be set 
 
 4. On `main`, tag the version already in `package.json` and push the tag: `git tag 0.1.0 && git push origin 0.1.0`. `npm run release` always bumps the version, so it can't publish that one. Approve the Publish run.
 5. Once the package is on npm, delete the `NPM_TOKEN` secret and revoke the token.
-6. Before the next release, add a trusted publisher in the package's settings on npmjs.com: GitHub Actions, `AdNabu-Team/n8n-nodes-mentionbird`, workflow `publish.yml`, environment `npm`. A new trusted publisher expires unless it publishes within 2 days, so release soon after. Then set the package's publishing access to require two-factor authentication and disallow tokens.
+6. Before the next release, add a trusted publisher in the package's settings on npmjs.com, under **Trusted publishing → GitHub Actions**: organization `AdNabu-Team`, repository `n8n-nodes-mentionbird`, workflow `publish.yml`, environment `npm`. Under **Allowed actions**, tick `npm publish`: without it the trusted publisher allows only `npm stage publish`, and `n8n-node release` runs `npm publish`. A new trusted publisher expires unless it publishes within 2 days, so release soon after. Then set the package's publishing access to require two-factor authentication and disallow tokens.
 
 `package.json` sets `publishConfig.access` to `public`. npm otherwise publishes a scoped package as private, and it generates provenance for a package's first version only with public access.
 
