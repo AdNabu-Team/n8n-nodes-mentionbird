@@ -398,7 +398,7 @@ export const operationProperties: INodeProperties[] = [
 				value: 'getOwnedSourceShare',
 				action: 'Get owned vs earned citation share',
 				description:
-					'How citations split between domains the brand owns, competitor-owned domains and earned third-party coverage',
+					"How citations split between domains the brand owns, competitor-owned domains and earned third-party coverage. The filters narrow it the way the dashboard's sources page does.",
 				routing: {
 					request: { method: 'GET', url: '/sources/owned-share' },
 					output: { postReceive: [throwOnApiError, splitListEnvelope] },
@@ -687,7 +687,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'excludeBrand',
 				type: 'string',
 				default: '',
-				description: 'Only answers that do not mention this brand',
+				description:
+					"Only answers that do not mention this brand. The tracked brand's name or a competitor's name from Brand → Get Competitors matches every spelling of it; any other name matches that exact brand only. filters_applied.exclude_brand_match says which.",
 				routing: { send: { type: 'query', property: 'exclude_brand' } },
 			},
 			{
@@ -695,7 +696,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'filterByBrand',
 				type: 'string',
 				default: '',
-				description: 'Only answers that also mention this brand',
+				description:
+					"Only answers that also mention this brand. The tracked brand's name or a competitor's name from Brand → Get Competitors matches every spelling of it; any other name matches that exact brand only. filters_applied.filter_by_brand_match says which.",
 				routing: { send: { type: 'query', property: 'filter_by_brand' } },
 			},
 			{
@@ -820,6 +822,14 @@ export const operationProperties: INodeProperties[] = [
 				routing: { send: { type: 'query', property: 'llm_provider' } },
 			},
 			{
+				displayName: 'Content Type',
+				name: 'contentType',
+				type: 'string',
+				default: '',
+				description: 'Page category — see Citation → Get Taxonomy',
+				routing: { send: { type: 'query', property: 'content_type' } },
+			},
+			{
 				displayName: 'End Date',
 				name: 'endDate',
 				type: 'string',
@@ -839,6 +849,38 @@ export const operationProperties: INodeProperties[] = [
 				default: 'rows',
 				description:
 					"How to output a list: one item per row, or the whole response as one item, with the rows in 'items' next to the totals and summary fields. A response that isn't a list is always one item.",
+			},
+			{
+				displayName: 'Prompt ID',
+				name: 'brandPromptId',
+				type: 'string',
+				default: '',
+				description: 'Limit to one prompt — token from Prompt → Get Many',
+				routing: { send: { type: 'query', property: 'brand_prompt_id' } },
+			},
+			{
+				displayName: 'Prompt Tag',
+				name: 'queryTag',
+				type: 'string',
+				default: '',
+				description: 'Filter to one tag slug',
+				routing: { send: { type: 'query', property: 'query_tag' } },
+			},
+			{
+				displayName: 'Search',
+				name: 'search',
+				type: 'string',
+				default: '',
+				description: 'Substring match on domain, URL or page title',
+				routing: { send: { type: 'query', property: 'search' } },
+			},
+			{
+				displayName: 'Source Type',
+				name: 'sourceType',
+				type: 'string',
+				default: '',
+				description: 'Site category — see Citation → Get Taxonomy',
+				routing: { send: { type: 'query', property: 'source_type' } },
 			},
 			{
 				displayName: 'Start Date',
@@ -1622,7 +1664,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'country',
 				type: 'string',
 				default: 'ZZ',
-				description: "ISO alpha-2 code; 'ZZ' = Global",
+				description:
+					"ISO alpha-2 code; 'ZZ' or omitted = Global. An unsupported code is a 400, not Global.",
 				placeholder: 'e.g. US',
 				routing: { send: { type: 'body', property: 'country' } },
 			},
@@ -1859,7 +1902,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'excludeBrand',
 				type: 'string',
 				default: '',
-				description: 'Only answers that do not mention this brand',
+				description:
+					"Only answers that do not mention this brand. The tracked brand's name or a competitor's name from Brand → Get Competitors matches every spelling of it; any other name matches that exact brand only. filters_applied.exclude_brand_match says which.",
 				routing: { send: { type: 'query', property: 'exclude_brand' } },
 			},
 			{
@@ -1867,7 +1911,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'filterByBrand',
 				type: 'string',
 				default: '',
-				description: 'Only answers that also mention this brand',
+				description:
+					"Only answers that also mention this brand. The tracked brand's name or a competitor's name from Brand → Get Competitors matches every spelling of it; any other name matches that exact brand only. filters_applied.filter_by_brand_match says which.",
 				routing: { send: { type: 'query', property: 'filter_by_brand' } },
 			},
 			{
@@ -2095,7 +2140,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'Get Many',
 				value: 'listYouTubeSummaries',
 				action: 'Get many video summaries',
-				description: 'Cited YouTube videos this brand has already paid to summarize',
+				description:
+					'Cited YouTube videos this brand has already paid to summarize. With no dates, every summary the brand owns is listed.',
 				routing: {
 					request: { method: 'GET', url: '/youtube/summaries' },
 					send: { paginate: true },
@@ -2157,7 +2203,8 @@ export const operationProperties: INodeProperties[] = [
 				name: 'endDate',
 				type: 'string',
 				default: '',
-				description: 'ISO end date (YYYY-MM-DD). Defaults to today.',
+				description:
+					'ISO end date (YYYY-MM-DD): only summaries completed on or before this day. Omit for no upper bound.',
 				placeholder: 'e.g. 2026-01-31',
 				routing: { send: { type: 'query', property: 'end_date' } },
 			},
@@ -2187,7 +2234,7 @@ export const operationProperties: INodeProperties[] = [
 				type: 'string',
 				default: '',
 				description:
-					'ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400.',
+					'ISO start date (YYYY-MM-DD): only summaries completed on or after this day. Omit for no lower bound; with neither date, every summary the brand owns is listed. No maximum span.',
 				placeholder: 'e.g. 2026-01-01',
 				routing: { send: { type: 'query', property: 'start_date' } },
 			},

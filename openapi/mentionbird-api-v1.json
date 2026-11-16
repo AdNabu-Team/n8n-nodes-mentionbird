@@ -32,7 +32,7 @@
 				"description": "List every brand this workspace tracks. Call this first — other endpoints take the brand name exactly as returned here.",
 				"responses": {
 					"200": {
-						"description": "List of tracked brands."
+						"description": "List of tracked brands. domains lists the domains this workspace declared as the brand's own, each with include_subdomains; they are what the 'yours' ownership label matches, and an empty list means none are declared. domain is the first declared domain, else the brand's public domain, else null."
 					},
 					"400": {
 						"description": "Validation error — check the message in `error.message`."
@@ -309,7 +309,7 @@
 				"description": "List the competitors tracked for a brand, with each one's domain. getTopMentionedBrands marks their rows is_tracked_competitor.",
 				"responses": {
 					"200": {
-						"description": "Tracked competitors in name order; domain is null when unknown. A competitor gets a row in getTopMentionedBrands only when answers in the range named it, and not even then when every spelling of it falls inside the tracked brand's own spellings or an earlier-added competitor's: its mentions count under that row instead."
+						"description": "Tracked competitors in name order. domains lists the domains this workspace declared for each, with include_subdomains; they are what the 'competitor:<name>' ownership label matches, and an empty list means none are declared. domain is the first declared domain, else the competitor's public domain, else null. A competitor gets a row in getTopMentionedBrands only when answers in the range named it, and not even then when every spelling of it falls inside the tracked brand's own spellings or an earlier-added competitor's: its mentions count under that row instead."
 					},
 					"400": {
 						"description": "Validation error — check the message in `error.message`."
@@ -557,7 +557,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "Only answers that also mention this brand."
+						"description": "Only answers that also mention this brand. The tracked brand's name or a competitor's name from listCompetitors matches every spelling of it; any other name matches that exact brand only. filters_applied.filter_by_brand_match says which."
 					},
 					{
 						"name": "exclude_brand",
@@ -566,7 +566,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "Only answers that do not mention this brand."
+						"description": "Only answers that do not mention this brand. The tracked brand's name or a competitor's name from listCompetitors matches every spelling of it; any other name matches that exact brand only. filters_applied.exclude_brand_match says which."
 					},
 					{
 						"name": "brand_prompt_id",
@@ -706,7 +706,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "Only answers that also mention this brand."
+						"description": "Only answers that also mention this brand. The tracked brand's name or a competitor's name from listCompetitors matches every spelling of it; any other name matches that exact brand only. filters_applied.filter_by_brand_match says which."
 					},
 					{
 						"name": "exclude_brand",
@@ -715,7 +715,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "Only answers that do not mention this brand."
+						"description": "Only answers that do not mention this brand. The tracked brand's name or a competitor's name from listCompetitors matches every spelling of it; any other name matches that exact brand only. filters_applied.exclude_brand_match says which."
 					},
 					{
 						"name": "brand_prompt_id",
@@ -1246,7 +1246,7 @@
 			"get": {
 				"summary": "Get Owned vs Earned Share",
 				"operationId": "getOwnedSourceShare",
-				"description": "How citations split between domains the brand owns, competitor-owned domains and earned third-party coverage.",
+				"description": "How citations split between domains the brand owns, competitor-owned domains and earned third-party coverage. The filters narrow it the way the dashboard's sources page does.",
 				"responses": {
 					"200": {
 						"description": "Ownership breakdown."
@@ -1325,6 +1325,51 @@
 							]
 						},
 						"description": "Filter to one AI platform."
+					},
+					{
+						"name": "query_tag",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Filter to one tag slug."
+					},
+					{
+						"name": "brand_prompt_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Limit to one prompt — token from listQueries."
+					},
+					{
+						"name": "source_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Site category — see listCitationTags."
+					},
+					{
+						"name": "content_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Page category — see listCitationTags."
+					},
+					{
+						"name": "search",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						},
+						"description": "Substring match on domain, URL or page title."
 					}
 				],
 				"tags": [
@@ -1755,7 +1800,7 @@
 				"description": "Completed ranking-advice runs for ONE prompt — what to change to rank better. Read-only: this never starts a new run. Requires brand_prompt_id from listQueries.",
 				"responses": {
 					"200": {
-						"description": "Ranking advice runs for the prompt."
+						"description": "Ranking advice runs for the prompt. providers_scope lists the AI platforms each run's advice covers (empty with covers_all_providers true means every platform); name them when you relay advice that covers only some."
 					},
 					"400": {
 						"description": "Validation error — check the message in `error.message`."
@@ -1843,7 +1888,7 @@
 				"description": "Ranking-advice runs across ALL of a brand's prompts. Use this to find which prompts already have advice before calling getRankingAdvice.",
 				"responses": {
 					"200": {
-						"description": "Ranking advice runs for the brand."
+						"description": "Ranking advice runs for the brand, each with providers_scope: the AI platforms its advice covers."
 					},
 					"400": {
 						"description": "Validation error — check the message in `error.message`."
@@ -1946,7 +1991,7 @@
 				"description": "Recent AI answers for the brand's prompts, each with a short preview of the answer. To read one answer in full, take its run_id from this list and call getQueryRun.",
 				"responses": {
 					"200": {
-						"description": "Sample AI answers, each with a ~300 character preview and a run_id. web_search_query_count is how many web searches the AI ran before answering: 0 means it answered without searching; null means the number is not recorded - Perplexity never exposes its searches, and runs from before we started recording them have no count. The search terms themselves are on getQueryRun. mention_sentiment is how that answer framed the brand - positive, neutral or negative. It is null when the answer never named the brand, and 'unknown' when it did but the run predates sentiment tracking; those are different facts, so do not read either as neutral."
+						"description": "Sample AI answers, each with a ~300 character preview and a run_id. web_search_query_count is how many web searches the AI ran before answering: 0 means it answered without searching; null means the number is not recorded - Perplexity never exposes its searches, and runs from before we started recording them have no count. The search terms themselves are on getQueryRun. mention_sentiment is how that answer framed the brand - positive, neutral or negative. It is null when the answer never named the brand, and 'unknown' when it did but the run predates sentiment tracking; those are different facts, so do not read either as neutral. Only answers that have been read are listed; unparsed_run_count says how many more in the same scope are still waiting or failed to read."
 					},
 					"400": {
 						"description": "Validation error — check the message in `error.message`."
@@ -2130,7 +2175,7 @@
 			"get": {
 				"summary": "List YouTube Summaries",
 				"operationId": "listYouTubeSummaries",
-				"description": "Cited YouTube videos this brand has already paid to summarize.",
+				"description": "Cited YouTube videos this brand has already paid to summarize. With no dates, every summary the brand owns is listed.",
 				"responses": {
 					"200": {
 						"description": "YouTube summaries."
@@ -2183,7 +2228,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO start date (YYYY-MM-DD). Defaults to 30 days ago. The range may span at most 365 days; a longer one is a 400."
+						"description": "ISO start date (YYYY-MM-DD): only summaries completed on or after this day. Omit for no lower bound; with neither date, every summary the brand owns is listed. No maximum span."
 					},
 					{
 						"name": "end_date",
@@ -2192,7 +2237,7 @@
 						"schema": {
 							"type": "string"
 						},
-						"description": "ISO end date (YYYY-MM-DD). Defaults to today."
+						"description": "ISO end date (YYYY-MM-DD): only summaries completed on or before this day. Omit for no upper bound."
 					},
 					{
 						"name": "search",
@@ -2349,7 +2394,7 @@
 									"country": {
 										"type": "string",
 										"default": "ZZ",
-										"description": "ISO alpha-2 code; 'ZZ' = Global."
+										"description": "ISO alpha-2 code; 'ZZ' or omitted = Global. An unsupported code is a 400, not Global."
 									},
 									"tags": {
 										"type": "array",
